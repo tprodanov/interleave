@@ -167,8 +167,15 @@ fn main() {
     let filenames2: Vec<_> = args[2].split(',').collect();
     assert_eq!(filenames1.len(), filenames2.len(), "Unequal number of first and second read files");
 
-    let out_filename = &args[3];
-    let tmp_filename = format!("{}.tmp", out_filename);
+    let out_filename = Path::new(&args[3]);
+    let tmp_filename = match out_filename.extension() {
+        Some(ext) => {
+            let ext = ext.to_str().expect("Filename extension is not UTF-8");
+            out_filename.with_extension(format!("tmp.{}", ext))
+        }
+        None => out_filename.with_added_extension("tmp"),
+    };
+
     let mut f_out = create(&tmp_filename).unwrap();
     let mut start = 1;
     for (fname1, fname2) in filenames1.iter().zip(&filenames2) {
